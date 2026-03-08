@@ -3,6 +3,48 @@ import re
 import requests
 from datetime import datetime
 from pypdf import PdfReader
+from bs4 import BeautifulSoup
+
+def download_latest_menu():
+    url = "https://laspalmas.salesianos.edu/colegio/comedorescolar/"
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
+    
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # We look for all links that end in .pdf and contain "Descargar"
+        pdf_link = None
+        for a in soup.find_all('a', href=True):
+            if ".pdf" in a['href'] and "Descargar" in a.text:
+                # To be extra safe, we check if the URL contains current year/month
+                current_year_month = datetime.now().strftime("%Y/%m")
+                if current_year_month in a['href']:
+                    pdf_link = a['href']
+                    break
+        
+        # Fallback: If no year/month match, just take the first "Descargar" PDF link found
+        if not pdf_link:
+            for a in soup.find_all('a', href=True):
+                if ".pdf" in a['href'] and "Descargar" in a.text:
+                    pdf_link = a['href']
+                    break
+
+        if pdf_link:
+            print(f"Found PDF: {pdf_link}")
+            pdf_data = requests.get(pdf_link, headers=headers).content
+            with open("menu.pdf", "wb") as f:
+                f.write(pdf_data)
+            return "menu.pdf"
+            
+    except Exception as e:
+        print(f"Error scraping or downloading: {e}")
+    
+    return None
 
 def get_today_menu(menu_list):
     # Format today's date to match "07mar."
@@ -88,12 +130,22 @@ def send_telegram_message(token, chat_id, menu_item):
     response = requests.post(url, data=payload)
     return response.json()
 
-# PRO TIP: Use 'r' before the string to fix "invalid escape sequence"
-path = r"./menu.pdf" 
-menu_data = parse_and_clean_menu(read_first_page(path))
 
-today_menu = get_today_menu(menu_data)
+def main():
+    pdf_file = download_latest_menu()
+        if not pdf_file or not os.path.exists(pdf_file):
+            print("Could not get the menu file.")
+            return
+    menu_data = parse_and_clean_menu(read_first_page(pdf_file))
 
-TOKEN = os.getenv("TELEGRAM_TOKEN")
-CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
-send_telegram_message(TOKEN, CHAT_ID, today_menu)
+    today_menu = get_today_menu(menu_data)
+
+    if today_menu:
+        TOKEN = os.getenv("TELEGRAM_TOKEN")
+        CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+        send_telegram_message(TOKEN, CHAT_ID, today_menu)
+    else:
+        print("Menu found in PDF, but no entry matches today's date.")
+
+if __name__ == "__main__":
+    main()
