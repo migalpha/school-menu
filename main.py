@@ -133,9 +133,10 @@ def send_telegram_message(token, chat_id, menu_item):
 
 def main():
     pdf_file = download_latest_menu()
-        if not pdf_file or not os.path.exists(pdf_file):
-            print("Could not get the menu file.")
-            return
+    if not pdf_file or not os.path.exists(pdf_file):
+        print("Could not get the menu file.")
+        return
+
     menu_data = parse_and_clean_menu(read_first_page(pdf_file))
 
     today_menu = get_today_menu(menu_data)
