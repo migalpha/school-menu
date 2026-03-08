@@ -4,7 +4,7 @@ on:
   schedule:
     # Runs at 08:00 UTC every day. 
     # GitHub uses UTC, so adjust for your timezone (Canary Islands is UTC+0/1)
-    - cron: '0 8 * * 1-5'
+    - cron: '0 8 * 9-12,1-6 1-5'
   workflow_dispatch: # Allows you to run it manually for testing
 
 jobs:
