@@ -128,7 +128,6 @@ def send_telegram_message(token, chat_id, menu_item):
     }
     
     response = requests.post(url, data=payload)
-    print(response.json())
     return response.json()
 
 
