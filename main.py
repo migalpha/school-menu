@@ -62,7 +62,7 @@ def read_first_page(file_path):
         reader = PdfReader(file_path)
         
         # Get the first page (Python is 0-indexed, so 0 is page 1)
-        first_page = reader.pages[0]
+        first_page = reader.pages[1] # Now first page is informative and the menu is in second page.
         
         # Extract and return text
         return first_page.extract_text()
