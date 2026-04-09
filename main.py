@@ -46,10 +46,14 @@ def download_latest_menu():
     
     return None
 
+MONTH_ES = {
+    1: "ene", 2: "feb", 3: "mar", 4: "abr", 5: "may", 6: "jun",
+    7: "jul", 8: "ago", 9: "sep", 10: "oct", 11: "nov", 12: "dic"
+}
+
 def get_today_menu(menu_list):
-    # Format today's date to match "07mar."
-    # %d is day with leading zero, %b is short month name in lowercase
-    today_str = datetime.now().strftime("%d%b").lower() + "."
+    now = datetime.now()
+    today_str = f"{now.day:02d}{MONTH_ES[now.month]}."
     
     for item in menu_list:
         if item['date'] == today_str:
